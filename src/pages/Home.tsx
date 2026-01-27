@@ -1,8 +1,18 @@
 import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { FileVideo, FolderOpen, Zap } from 'lucide-react'
 
 export function Home() {
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Check if user has configured settings before
+    const settings = localStorage.getItem('rapidhls-settings')
+    if (!settings) {
+      // First time user, redirect to settings
+      navigate('/settings')
+    }
+  }, [navigate])
 
   return (
     <div className="min-h-full flex items-center justify-center p-8 py-12">

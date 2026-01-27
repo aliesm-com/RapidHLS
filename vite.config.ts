@@ -9,9 +9,24 @@ export default defineConfig({
     electron({
       main: {
         entry: 'electron/main.ts',
+        vite: {
+          build: {
+            minify: 'esbuild',
+            sourcemap: false,
+            rollupOptions: {
+              external: ['electron']
+            }
+          }
+        }
       },
       preload: {
         input: path.join(__dirname, 'electron/preload.ts'),
+        vite: {
+          build: {
+            minify: 'esbuild',
+            sourcemap: false
+          }
+        }
       },
       renderer: {},
     }),
@@ -21,4 +36,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    minify: 'esbuild',
+    sourcemap: false,
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['lucide-react', 'sonner', '@radix-ui/react-slot']
+        }
+      }
+    }
+  }
 })

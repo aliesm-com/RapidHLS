@@ -8,9 +8,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
-    "build:win": "tsc && vite build && electron-builder --win",
+    "build:win": "tsc && vite build && electron-builder --win --x64",
     "build:mac": "tsc && vite build && electron-builder --mac",
     "build:linux": "tsc && vite build && electron-builder --linux",
+    "build:dir": "tsc && vite build && electron-builder --dir",
+    "clean": "rm -rf dist dist-electron release node_modules/.cache",
     "preview": "vite preview",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\""
@@ -50,30 +52,53 @@
     },
     "files": [
       "dist/**/*",
-      "dist-electron/**/*"
+      "dist-electron/**/*",
+      "!**/*.map",
+      "!**/*.md",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/.bin",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
     ],
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "compression": "maximum",
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
       ],
       "icon": "build/icon.ico",
       "sign": null,
-      "verifyUpdateCodeSignature": false
+      "verifyUpdateCodeSignature": false,
+      "artifactName": "${productName}-${version}-Setup.${ext}",
+      "compression": "maximum"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "RapidHLS"
     },
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        "dmg"
       ],
       "icon": "build/icon.icns",
       "category": "public.app-category.utilities"
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb",
-        "rpm"
+        "AppImage"
       ],
       "icon": "build/icon.png",
       "category": "Utility"

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useState } from 'react'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { SplashScreen } from './components/SplashScreen'
 import { Layout } from './components/Layout'
@@ -12,15 +12,6 @@ import { InstallGuide } from './pages/InstallGuide'
 
 function App() {
   const [showSplash, setShowSplash] = useState(true)
-  const [shouldShowSettings, setShouldShowSettings] = useState(false)
-
-  useEffect(() => {
-    // Check if user has configured settings before
-    const settings = localStorage.getItem('rapidhls-settings')
-    if (!settings) {
-      setShouldShowSettings(true)
-    }
-  }, [])
 
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />
@@ -44,7 +35,7 @@ function App() {
       />
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={shouldShowSettings ? <Navigate to="/settings" replace /> : <Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/install-guide" element={<InstallGuide />} />
           <Route path="/about" element={<About />} />
