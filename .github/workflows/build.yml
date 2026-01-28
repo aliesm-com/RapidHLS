@@ -55,7 +55,11 @@ jobs:
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}
           path: |
-            release/**/*
+            release/**/*.exe
+            release/**/*.dmg
+            release/**/*.AppImage
+            release/**/*.deb
+            release/**/*.rpm
           retention-days: 5
 
   release:
