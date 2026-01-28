@@ -1,16 +1,46 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useConversion } from '@/contexts/ConversionContext'
 import { Button } from '@/components/ui/button'
-import { FileVideo, ArrowLeft, Upload, Folder, ChevronDown, ChevronUp, Settings, Play } from 'lucide-react'
+import {
+  FileVideo,
+  ArrowLeft,
+  Upload,
+  Folder,
+  ChevronDown,
+  ChevronUp,
+  Settings,
+  Play,
+} from 'lucide-react'
 
 export function SingleConvert() {
   const navigate = useNavigate()
+  const conversion = useConversion()
   const [selectedFile, setSelectedFile] = useState<string>('')
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [outputName, setOutputName] = useState('')
   const [outputPath, setOutputPath] = useState('')
+  const [outputMode, setOutputMode] = useState<'default' | 'sameAsInput' | 'custom'>('default')
   const [splitTime, setSplitTime] = useState('10')
   const [quality, setQuality] = useState('medium')
+  const [audioOnly, setAudioOnly] = useState(false)
+  const [defaultOutputFromSettings, setDefaultOutputFromSettings] = useState('')
+  const [ffmpegPath, setFfmpegPath] = useState('')
+
+  // Setup event listeners
+  useEffect(() => {
+    // Load settings from localStorage
+    const settings = localStorage.getItem('rapidhls-settings')
+    if (settings) {
+      try {
+        const parsed = JSON.parse(settings)
+        if (parsed.defaultOutputPath) setDefaultOutputFromSettings(parsed.defaultOutputPath)
+        if (parsed.ffmpegPath) setFfmpegPath(parsed.ffmpegPath)
+      } catch (e) {
+        // Invalid JSON, ignore
+      }
+    }
+  }, [])
 
   const handleSelectFile = async () => {
     if (window.electronAPI) {
@@ -18,7 +48,11 @@ export function SingleConvert() {
       if (path) {
         setSelectedFile(path)
         // Auto-generate output name from input file
-        const fileName = path.split(/[\\\/]/).pop()?.replace(/\.[^.]+$/, '') || ''
+        const fileName =
+          path
+            .split(/[\\\/]/)
+            .pop()
+            ?.replace(/\.[^.]+$/, '') || ''
         setOutputName(fileName)
       }
     }
@@ -26,7 +60,7 @@ export function SingleConvert() {
 
   const handleSelectOutput = async () => {
     if (window.electronAPI) {
-      const path = await window.electronAPI.openFileDialog()
+      const path = await window.electronAPI.openFolderDialog()
       if (path) {
         setOutputPath(path)
       }
@@ -34,14 +68,23 @@ export function SingleConvert() {
   }
 
   const handleConvert = () => {
-    // TODO: Implement conversion logic
-    console.log('Converting with settings:', {
-      file: selectedFile,
-      outputName,
+    if (!selectedFile) return
+
+    // Start conversion and navigate to conversion page
+    conversion.startConversion({
+      files: [selectedFile],
+      outputName: outputName || 'output',
       outputPath,
+      outputMode,
       splitTime,
-      quality
+      quality,
+      audioOnly,
+      ffmpegPath,
+      defaultOutputFromSettings,
+      isBulk: false,
     })
+
+    navigate('/conversion')
   }
 
   return (
@@ -63,7 +106,6 @@ export function SingleConvert() {
         <div className="relative rounded-2xl overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-500/5 to-transparent" />
           <div className="relative bg-slate-900/40 backdrop-blur-2xl border border-slate-700/50 rounded-2xl p-8 space-y-6">
-            
             {/* File Selection */}
             <div className="space-y-3">
               <label className="text-sm font-semibold text-slate-200 flex items-center gap-2">
@@ -122,28 +164,44 @@ export function SingleConvert() {
                   />
                 </div>
 
-                {/* Output Path */}
+                {/* Output Path Mode */}
                 <div className="space-y-2">
-                  <label htmlFor="outputPath" className="text-sm font-medium text-slate-300">
-                    Output Directory
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      id="outputPath"
-                      type="text"
-                      value={outputPath}
-                      onChange={(e) => setOutputPath(e.target.value)}
-                      placeholder="Same as input file"
-                      className="flex-1 px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200"
-                    />
-                    <button
-                      onClick={handleSelectOutput}
-                      className="px-4 py-2.5 rounded-lg bg-slate-700/50 border border-slate-600/50 hover:bg-slate-600/50 transition-all duration-200"
-                    >
-                      <Folder className="w-4 h-4 text-slate-300" />
-                    </button>
-                  </div>
+                  <label className="text-sm font-medium text-slate-300">Output Location</label>
+                  <select
+                    value={outputMode}
+                    onChange={(e) => setOutputMode(e.target.value as any)}
+                    className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200"
+                  >
+                    <option value="default">Use Default Output Path</option>
+                    <option value="sameAsInput">Same As Input File</option>
+                    <option value="custom">Custom Path</option>
+                  </select>
                 </div>
+
+                {/* Output Path - Only show if custom mode */}
+                {outputMode === 'custom' && (
+                  <div className="space-y-2">
+                    <label htmlFor="outputPath" className="text-sm font-medium text-slate-300">
+                      Custom Output Directory
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        id="outputPath"
+                        type="text"
+                        value={outputPath}
+                        onChange={(e) => setOutputPath(e.target.value)}
+                        placeholder="Select custom output directory"
+                        className="flex-1 px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200"
+                      />
+                      <button
+                        onClick={handleSelectOutput}
+                        className="px-4 py-2.5 rounded-lg bg-slate-700/50 border border-slate-600/50 hover:bg-slate-600/50 transition-all duration-200"
+                      >
+                        <Folder className="w-4 h-4 text-slate-300" />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Split Time */}
                 <div className="space-y-2">
@@ -160,10 +218,28 @@ export function SingleConvert() {
                   />
                 </div>
 
+                {/* Audio Only Option */}
+                <div className="flex items-center gap-3">
+                  <input
+                    id="audioOnly"
+                    type="checkbox"
+                    checked={audioOnly}
+                    onChange={(e) => {
+                      setAudioOnly(e.target.checked)
+                      // Reset quality to medium when switching modes
+                      setQuality('medium')
+                    }}
+                    className="w-4 h-4 rounded bg-slate-800/50 border-slate-700/50 text-purple-600 focus:ring-2 focus:ring-purple-500/50"
+                  />
+                  <label htmlFor="audioOnly" className="text-sm text-slate-300">
+                    Extract audio only (no video)
+                  </label>
+                </div>
+
                 {/* Quality */}
                 <div className="space-y-2">
                   <label htmlFor="quality" className="text-sm font-medium text-slate-300">
-                    Quality Preset
+                    {audioOnly ? 'Audio Quality' : 'Video Quality'}
                   </label>
                   <select
                     id="quality"
@@ -171,9 +247,19 @@ export function SingleConvert() {
                     onChange={(e) => setQuality(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200"
                   >
-                    <option value="low">Low (Fast)</option>
-                    <option value="medium">Medium (Balanced)</option>
-                    <option value="high">High (Best Quality)</option>
+                    {audioOnly ? (
+                      <>
+                        <option value="low">64 kbps</option>
+                        <option value="medium">128 kbps</option>
+                        <option value="high">320 kbps</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="low">Low (Fast)</option>
+                        <option value="medium">Medium (Balanced)</option>
+                        <option value="high">High (Best Quality)</option>
+                      </>
+                    )}
                   </select>
                 </div>
               </div>

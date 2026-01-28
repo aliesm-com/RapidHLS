@@ -37,7 +37,7 @@ export function Settings() {
 
   const handleBrowse = async () => {
     if (window.electronAPI) {
-      const path = await window.electronAPI.openFileDialog()
+      const path = await window.electronAPI.openFolderDialog()
       if (path) {
         // Check if we're setting FFMPEG path or output path based on focus
         // For now, we'll use this for output path
@@ -48,7 +48,7 @@ export function Settings() {
 
   const handleBrowseFFMPEG = async () => {
     if (window.electronAPI) {
-      const path = await window.electronAPI.openFileDialog()
+      const path = await window.electronAPI.openFolderDialog()
       if (path) {
         setFfmpegPath(path)
       }
@@ -61,18 +61,21 @@ export function Settings() {
 
   const handleSave = () => {
     // Save settings to localStorage
-    localStorage.setItem('rapidhls-settings', JSON.stringify({
-      ffmpegPath,
-      splitTime,
-      defaultOutputPath,
-      quality,
-      configured: true
-    }))
-    
+    localStorage.setItem(
+      'rapidhls-settings',
+      JSON.stringify({
+        ffmpegPath,
+        splitTime,
+        defaultOutputPath,
+        quality,
+        configured: true,
+      })
+    )
+
     toast.success('Settings saved successfully!', {
       description: 'Your preferences have been saved to local storage.',
     })
-    
+
     setTimeout(() => {
       navigate('/')
     }, 1000)
@@ -80,18 +83,21 @@ export function Settings() {
 
   const handleLater = () => {
     // Mark as seen but not configured
-    localStorage.setItem('rapidhls-settings', JSON.stringify({
-      ffmpegPath: '',
-      splitTime: '10',
-      defaultOutputPath: '',
-      quality: 'medium',
-      configured: false
-    }))
-    
+    localStorage.setItem(
+      'rapidhls-settings',
+      JSON.stringify({
+        ffmpegPath: '',
+        splitTime: '10',
+        defaultOutputPath: '',
+        quality: 'medium',
+        configured: false,
+      })
+    )
+
     toast.info('Settings skipped', {
       description: 'You can configure settings anytime from the settings menu.',
     })
-    
+
     setTimeout(() => {
       navigate('/')
     }, 1000)
@@ -112,10 +118,9 @@ export function Settings() {
             {isFirstTime ? 'Welcome to RapidHLS' : 'Settings'}
           </h1>
           <p className="text-lg text-slate-400">
-            {isFirstTime 
+            {isFirstTime
               ? 'Please configure the following settings to get started'
-              : 'Configure your HLS converter settings'
-            }
+              : 'Configure your HLS converter settings'}
           </p>
         </div>
 
@@ -126,7 +131,10 @@ export function Settings() {
             {/* FFMPEG Path */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label htmlFor="ffmpeg" className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                <label
+                  htmlFor="ffmpeg"
+                  className="text-sm font-semibold text-slate-200 flex items-center gap-2"
+                >
                   <Zap className="w-4 h-4 text-blue-400" />
                   FFMPEG Installation Path
                 </label>
@@ -160,7 +168,10 @@ export function Settings() {
 
             {/* Split Time */}
             <div className="space-y-3">
-              <label htmlFor="split" className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <label
+                htmlFor="split"
+                className="text-sm font-semibold text-slate-200 flex items-center gap-2"
+              >
                 <Zap className="w-4 h-4 text-purple-400" />
                 Default Split Time (seconds)
               </label>
@@ -176,7 +187,10 @@ export function Settings() {
 
             {/* Default Output Path */}
             <div className="space-y-3">
-              <label htmlFor="outputPath" className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <label
+                htmlFor="outputPath"
+                className="text-sm font-semibold text-slate-200 flex items-center gap-2"
+              >
                 <Folder className="w-4 h-4 text-blue-400" />
                 Default Output Directory
               </label>
@@ -201,7 +215,10 @@ export function Settings() {
 
             {/* Quality Preset */}
             <div className="space-y-3">
-              <label htmlFor="quality" className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <label
+                htmlFor="quality"
+                className="text-sm font-semibold text-slate-200 flex items-center gap-2"
+              >
                 <Zap className="w-4 h-4 text-pink-400" />
                 Default Quality Preset
               </label>

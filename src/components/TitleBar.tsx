@@ -1,4 +1,4 @@
-import { Minus, X, Info, Settings as SettingsIcon } from 'lucide-react'
+import { Minus, X, Info, Settings as SettingsIcon, Home } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 
@@ -14,8 +14,21 @@ export function TitleBar() {
       style={{ WebkitAppRegion: 'drag' } as any}
     >
       <div className="flex items-center gap-3 px-5">
-        <span className="text-base font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">RapidHLS</span>
+        <span className="text-base font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          RapidHLS
+        </span>
         <div className="flex gap-1.5" style={{ WebkitAppRegion: 'no-drag' } as any}>
+          <button
+            onClick={() => navigate('/')}
+            className={cn(
+              'h-8 w-8 flex items-center justify-center rounded-lg hover:bg-slate-700/50 transition-all duration-200',
+              location.pathname === '/' && 'bg-slate-700/70'
+            )}
+            aria-label="Home"
+            title="Home"
+          >
+            <Home className="w-4 h-4" />
+          </button>
           <button
             onClick={() => navigate('/settings')}
             className={cn(

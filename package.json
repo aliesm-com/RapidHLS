@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "RapidHLS - Multi-platform Electron application",
   "main": "dist-electron/main.js",
-  "author": "Your Name",
+  "author": "Ali ESM",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
@@ -71,7 +71,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "build/icon.ico",
