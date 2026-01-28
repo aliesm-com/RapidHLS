@@ -10,6 +10,9 @@ A powerful desktop application for converting video files to HLS (HTTP Live Stre
 
 </div>
 
+![rapidhls](https://github.com/user-attachments/assets/b5d08265-0d4c-4282-b107-4d54baf202ea)
+
+
 ---
 
 ## ✨ Features
@@ -42,6 +45,9 @@ A powerful desktop application for converting video files to HLS (HTTP Live Stre
 - RPM Package (x64, arm64)
 - TAR.GZ Archive (x64, arm64)
 - Snap Package (x64)
+
+
+![rapidhls2](https://github.com/user-attachments/assets/e0f533f1-9735-4724-af14-f24c4681560d)
 
 ## 🚀 Download & Installation
 
