@@ -1,6 +1,6 @@
 {
   "name": "rapidhls",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "RapidHLS - Multi-platform Electron application",
   "main": "dist-electron/main.js",
   "author": "Ali ESM <hi@aliesm.com>",

@@ -14,19 +14,19 @@ export default defineConfig({
             minify: 'esbuild',
             sourcemap: false,
             rollupOptions: {
-              external: ['electron']
-            }
-          }
-        }
+              external: ['electron', 'ffmpeg-static'],
+            },
+          },
+        },
       },
       preload: {
         input: path.join(__dirname, 'electron/preload.ts'),
         vite: {
           build: {
             minify: 'esbuild',
-            sourcemap: false
-          }
-        }
+            sourcemap: false,
+          },
+        },
       },
       renderer: {},
     }),
@@ -45,9 +45,9 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['lucide-react', 'sonner', '@radix-ui/react-slot']
-        }
-      }
-    }
-  }
+          'ui-vendor': ['lucide-react', 'sonner', '@radix-ui/react-slot'],
+        },
+      },
+    },
+  },
 })

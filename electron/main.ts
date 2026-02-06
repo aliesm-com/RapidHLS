@@ -209,35 +209,56 @@ function createWindow() {
 
         // Determine FFMPEG executable path
         // Priority: 1. User custom path, 2. Bundled ffmpeg-static, 3. System PATH
-        let ffmpegCommand: string
+        const isWin = process.platform === 'win32'
+        const normalizeCustomFfmpegPath = (customPath: string) => {
+          const trimmed = customPath.trim()
+          if (!trimmed) return ''
 
-        if (ffmpegPath) {
-          // User provided custom FFMPEG path
-          if (process.platform === 'win32') {
-            ffmpegCommand = path.join(ffmpegPath, 'ffmpeg.exe')
-          } else {
-            ffmpegCommand = path.join(ffmpegPath, 'ffmpeg')
+          const baseName = path.basename(trimmed).toLowerCase()
+          const isFilePath = baseName === 'ffmpeg' || baseName === 'ffmpeg.exe'
+          const primaryCandidate = isFilePath
+            ? trimmed
+            : path.join(trimmed, isWin ? 'ffmpeg.exe' : 'ffmpeg')
+
+          if (fs.existsSync(primaryCandidate)) {
+            return primaryCandidate
           }
 
-          // Check if file exists
-          if (!fs.existsSync(ffmpegCommand)) {
-            // Try without .exe extension or vice versa
-            const altCommand =
-              process.platform === 'win32'
-                ? path.join(ffmpegPath, 'ffmpeg')
-                : path.join(ffmpegPath, 'ffmpeg.exe')
-
-            if (fs.existsSync(altCommand)) {
-              ffmpegCommand = altCommand
-            } else {
-              // Fallback to bundled ffmpeg-static
-              ffmpegCommand = ffmpegStatic || 'ffmpeg'
+          if (!isFilePath) {
+            const altCandidate = path.join(trimmed, isWin ? 'ffmpeg' : 'ffmpeg.exe')
+            if (fs.existsSync(altCandidate)) {
+              return altCandidate
             }
           }
-        } else {
-          // Use bundled ffmpeg-static as default
-          ffmpegCommand = ffmpegStatic || 'ffmpeg'
+
+          return ''
         }
+
+        const resolveBundledFfmpeg = (candidate: string) => {
+          if (!candidate) return ''
+
+          const exists = (value: string) => (value && fs.existsSync(value) ? value : '')
+          const unpacked = candidate.includes('app.asar')
+            ? candidate.replace('app.asar', 'app.asar.unpacked')
+            : ''
+          const subPath = candidate.split(`${path.sep}app.asar${path.sep}`)[1] || ''
+          const resourcesUnpacked =
+            subPath && process.resourcesPath
+              ? path.join(process.resourcesPath, 'app.asar.unpacked', subPath)
+              : ''
+
+          return exists(unpacked) || exists(resourcesUnpacked) || exists(candidate)
+        }
+
+        const customCommand = ffmpegPath ? normalizeCustomFfmpegPath(ffmpegPath) : ''
+        const bundledCommand = resolveBundledFfmpeg(ffmpegStatic || '')
+        const ffmpegCommand = customCommand || bundledCommand || 'ffmpeg'
+        console.log('[ffmpeg] resolved path:', {
+          ffmpegStatic,
+          bundledCommand,
+          customCommand,
+          ffmpegCommand,
+        })
 
         let ffmpegArgs: string[]
         const m3u8Path = path.join(outputDir, 'playlist.m3u8')
@@ -326,15 +347,31 @@ function createWindow() {
           }
         })
 
-        ffmpeg.on('close', (code) => {
+        ffmpeg.on('close', (code, signal) => {
           if (code === 0) {
             resolve({ success: true, outputDir })
-          } else {
-            reject({ success: false, error: errorOutput })
+            return
           }
+
+          const message = errorOutput || `FFMPEG exited with code ${code ?? 'unknown'}`
+          console.error('[ffmpeg] process closed with error', {
+            code,
+            signal,
+            ffmpegCommand,
+            ffmpegArgs,
+            message,
+          })
+          mainWindow.webContents.send('conversion-log', `\n[ffmpeg] ${message}\n`)
+          reject({ success: false, error: message })
         })
 
         ffmpeg.on('error', (err) => {
+          console.error('[ffmpeg] spawn error', {
+            ffmpegCommand,
+            ffmpegArgs,
+            message: err.message,
+          })
+          mainWindow.webContents.send('conversion-log', `\n[ffmpeg] spawn error: ${err.message}\n`)
           reject({ success: false, error: err.message })
         })
       })
