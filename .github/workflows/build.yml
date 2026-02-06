@@ -59,14 +59,13 @@ jobs:
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}
           path: |
-            release/*-Setup.exe
-            release/*-Portable.exe
-            release/*.dmg
-            release/*.AppImage
-            release/*.deb
-            release/*.rpm
-            release/*.snap
-            release/*.yml
+            release/**/*-Setup.exe
+            release/**/*-Portable.exe
+            release/**/*.dmg
+            release/**/*.pkg
+            release/**/*.AppImage
+            release/**/*.deb
+            release/**/*.rpm
           retention-days: 5
 
   release:
@@ -84,7 +83,7 @@ jobs:
           path: artifacts
 
       - name: Display structure of downloaded files
-        run: ls -R artifacts
+        run: ls -R artifacts || echo "No artifacts directory found"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
